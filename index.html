@@ -1,1 +1,318 @@
-Yesssss
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anamorphic Analogue Clock</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap');
+
+        body {
+            background: #020617;
+            color: #f8fafc;
+            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Vignette */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.8) 100%);
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        /* Film Grain */
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.035;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .cinema-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            padding: 2rem;
+            box-sizing: border-box;
+        }
+
+        /* Anamorphic Flares */
+        .flare-system {
+            position: absolute;
+            width: 150vw;
+            height: 100%;
+            top: 0;
+            left: -25vw;
+            pointer-events: none;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .horizontal-streak {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                rgba(56, 189, 248, 0) 0%, 
+                rgba(56, 189, 248, 0.05) 20%, 
+                rgba(56, 189, 248, 0.7) 50%, 
+                rgba(56, 189, 248, 0.05) 80%, 
+                rgba(56, 189, 248, 0) 100%
+            );
+            filter: blur(0.5px);
+            box-shadow: 0 0 12px 2px rgba(14, 165, 233, 0.3);
+        }
+
+        .lens-glow {
+            position: absolute;
+            width: 500px;
+            height: 120px;
+            background: radial-gradient(ellipse at center, rgba(14, 165, 233, 0.12) 0%, rgba(14, 165, 233, 0) 70%);
+            transform: scaleX(2.5);
+            filter: blur(30px);
+        }
+
+        /* Clock Styling */
+        .clock-outer {
+            position: relative;
+            width: 340px;
+            height: 340px;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, rgba(15, 23, 42, 0.4) 0%, rgba(2, 6, 23, 0.9) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 
+                0 25px 70px -10px rgba(0, 0, 0, 0.7),
+                inset 0 0 30px rgba(255, 255, 255, 0.02),
+                -1.5px 0 0 rgba(239, 68, 68, 0.15),
+                1.5px 0 0 rgba(6, 182, 212, 0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .clock-face {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .inner-ring {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .ticks {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .tick {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            width: 1px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            transform-origin: 50% 158px;
+            margin-left: -0.5px;
+        }
+
+        .tick.major {
+            width: 2px;
+            height: 14px;
+            background: rgba(255, 255, 255, 0.5);
+            transform-origin: 50% 158px;
+            margin-left: -1px;
+        }
+
+        /* Hands */
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            border-radius: 10px;
+            z-index: 5;
+        }
+
+        .hour-hand {
+            width: 5px;
+            height: 75px;
+            background: #ffffff;
+            margin-left: -2.5px;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+        }
+
+        .minute-hand {
+            width: 3px;
+            height: 115px;
+            background: #cbd5e1;
+            margin-left: -1.5px;
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+        }
+
+        .second-hand {
+            width: 1px;
+            height: 130px;
+            background: #f97316;
+            margin-left: -0.5px;
+            box-shadow: 0 0 6px rgba(249, 115, 22, 0.5);
+            z-index: 6;
+        }
+
+        .center-cap {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #f97316;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 6px rgba(249, 115, 22, 0.7);
+            z-index: 7;
+        }
+
+        .glass-reflection {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0) 60%, rgba(14, 165, 233, 0.03) 100%);
+            pointer-events: none;
+            z-index: 8;
+        }
+
+        /* Telemetry */
+        .telemetry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 450px;
+            margin-top: 3.5rem;
+            font-size: 0.65rem;
+            letter-spacing: 0.3em;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding-top: 1.5rem;
+            z-index: 2;
+        }
+
+        .telemetry-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .telemetry-item.active::before {
+            content: "";
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            background: #f97316;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #f97316;
+            animation: blink 1s infinite alternate;
+        }
+
+        @keyframes blink {
+            0% { opacity: 0.2; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="flare-system">
+        <div class="horizontal-streak"></div>
+        <div class="lens-glow"></div>
+    </div>
+    <div class="cinema-container">
+        <div class="clock-outer">
+            <div class="clock-face">
+                <div class="inner-ring"></div>
+                <div class="ticks" id="ticks"></div>
+                <div class="hand hour-hand"></div>
+                <div class="hand minute-hand"></div>
+                <div class="hand second-hand"></div>
+                <div class="center-cap"></div>
+                <div class="glass-reflection"></div>
+            </div>
+        </div>
+        <div class="telemetry">
+            <div class="telemetry-item active">SYS.ON</div>
+            <div class="telemetry-item" id="date">--</div>
+            <div class="telemetry-item" id="digital-time">00:00:00</div>
+            <div class="telemetry-item">24 FPS</div>
+        </div>
+    </div>
+    <script>
+        // Generate ticks
+        const ticksContainer = document.getElementById('ticks');
+        for (let i = 0; i < 12; i++) {
+            const tick = document.createElement('div');
+            tick.className = 'tick';
+            if (i % 3 === 0) tick.classList.add('major');
+            tick.style.transform = `rotate(${i * 30}deg)`;
+            ticksContainer.appendChild(tick);
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const ms = now.getMilliseconds();
+            const seconds = now.getSeconds() + ms / 1000;
+            const minutes = now.getMinutes() + seconds / 60;
+            const hours = (now.getHours() % 12) + minutes / 60;
+
+            const secDeg = seconds * 6;
+            const minDeg = minutes * 6;
+            const hrDeg = hours * 30;
+
+            document.querySelector('.second-hand').style.transform = `rotate(${secDeg}deg)`;
+            document.querySelector('.minute-hand').style.transform = `rotate(${minDeg}deg)`;
+            document.querySelector('.hour-hand').style.transform = `rotate(${hrDeg}deg)`;
+
+            // Digital telemetry
+            const digitalTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            document.getElementById('digital-time').textContent = digitalTime;
+            
+            const options = { weekday: 'short', month: 'short', day: 'numeric' };
+            document.getElementById('date').textContent = now.toLocaleDateString('en-US', options).toUpperCase();
+
+            requestAnimationFrame(updateClock);
+        }
+        requestAnimationFrame(updateClock);
+    </script>
+</body>
+</html>
